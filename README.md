@@ -7,7 +7,7 @@ a generic arithmetic system implemented using one of SiCP lessons, namely data d
 - [x] implement a `fraction` package;
 - [ ] implement a `polynomial` package;
 - [ ] implement a `rational-function` package;
-- [ ] implement an `integer` package; and
+- [x] implement an `integer` package; and
 - [ ] implement a generic `print` procedure.
 
 ## Built with:
