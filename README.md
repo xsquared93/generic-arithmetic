@@ -5,10 +5,12 @@ a generic arithmetic system implemented using one of SiCP lessons, namely data d
 - [x] implement a `radical` package;
 - [x] implement a `matrix` package;
 - [x] implement a `fraction` package;
-- [ ] implement a `polynomial` package;
+- [x] implement a `polynomial` package;
 - [ ] implement a `rational-function` package;
-- [x] implement an `integer` package; and
-- [ ] implement a generic `print` procedure.
+- [x] implement an `integer` package;
+- [ ] implement a generic `print` procedure;
+- [ ] define the procedures in the `polynomial` package to operate on abstract data, ie., data abstraction; and
+- [ ] define the procedures in the `matrix` package to operate on abstract data, ie., data abstraction.
 
 ## Built with:
 
