@@ -1,7 +1,7 @@
 (load "help.scm")
 (load "table.scm")
 
-;;;; main procedures
+;;; main procedures
 
 ;; simplify:
 (define (simplify radical)
@@ -25,6 +25,11 @@
 
 (define (make-rat numer denom)
   ((get 'make 'fraction) numer denom))
+
+(define (make-integer x)
+  ((get 'make 'integer) x))
+
+;;; packages
 
 (define (install-radical-package)
   ;; internal procedures
@@ -231,13 +236,37 @@
        (lambda (x y) (tag (subtract-matrices x y))))
   
   'installed!)
-    
+
+(define (install-integer-package)
+  ;; internal procedures
+
+  ;; interface to the rest of the system
+  (define tag
+    (lambda (x) (attach-tag 'integer x)))
+
+  (put 'add '(integer integer)
+       (lambda (x y) (tag (+ x y))))
+
+  (put 'sub '(integer integer)
+       (lambda (x y) (tag (- x y))))
+
+  (put 'mul '(integer integer)
+       (lambda (x y) (tag (* x y))))
+
+  (put 'div '(integer integer)
+       (lambda (x y) (tag (/ x y))))
+
+  (put 'make 'integer
+       (lambda (x) (tag x)))
+
+  'installed)
   
 
 ;; install packages
 (install-radical-package)
 (install-fractions-package)
 (install-matrix-package)
+(install-integer-package)
 
 ;;; tests
 (define (check-expect check expect)
@@ -254,6 +283,7 @@
 (define (tag x) (attach-tag 'radical x))
 (define (tag-fraction x) (attach-tag 'fraction x))
 (define (tag-matrix x) (attach-tag 'matrix x))
+(define (tag-integer x) (attach-tag 'integer x))
 
 (define (tests)
 
@@ -288,6 +318,16 @@
 
   (check-expect (add matrix1 matrix1) (tag-matrix (list (list 4 6 8) (list 6 8 10))))
   (check-expect (sub matrix2 matrix1) (tag-matrix (list (list 8 12 16) (list 4 4 4))))
+
+  ;; integers
+  (define int1 (make-integer 8))
+  (define int2 (make-integer 5))
+  (define int3 (make-integer 4))
+
+  (check-expect (add int1 int2) (tag-integer 13))
+  (check-expect (sub int1 int2) (tag-integer 3))
+  (check-expect (mul int1 int2) (tag-integer 40))
+  (check-expect (div int1 int3) (tag-integer 2))
 
   'done)
 
