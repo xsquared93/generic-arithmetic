@@ -260,6 +260,57 @@
        (lambda (x) (tag x)))
 
   'installed)
+
+(define (install-poly-package)
+  ;; internal procedures
+
+  (define (add-poly a b)
+    (cond ((null? a) b)
+	  ((null? b) a)
+	  ((> (caar a) (caar b))
+	   (cons (car a) (add-poly (cdr a) b)))
+	  ((> (caar b) (caar a))
+	   (cons (car b) (add-poly a (cdr b))))
+       	  ((= (+ (cdr (car a)) (cdr (car b))) 0)
+	   (add-poly (cdr a) (cdr b)))
+	  (else (cons (cons (caar a) (+ (cdr (car a)) (cdr (car b))))
+			     (add-poly (cdr a) (cdr b))))))
+  (define (sub-poly a b)
+    (cond ((null? a) b)
+	  ((null? b) a)
+	  ((> (caar a) (caar b))
+	   (cons (car a) (sub-poly (cdr a) b)))
+	  ((> (caar b) (caar a))
+	   (cons (car b) (sub-poly a (cdr b))))
+	  ((= (- (cdr (car a)) (cdr (car b))) 0)
+	   (sub-poly (cdr a) (cdr b)))
+	  (else (cons (cons (caar a) (- (cdr (car a)) (cdr (car b))))
+		      (sub-poly (cdr a) (cdr b))))))
+
+  (define (multiply-poly a b)
+    (if (or (null? a) (null? b))
+       '()
+       (cons (cons (+ (caar a) (caar b))
+		   (* (cdr (car a)) (cdr (car b))))
+	     (add-poly (multiply-poly (list (car a))
+				    (cdr b))
+		       (multiply-poly (cdr a) b)))))
+  
+  ;; interface to the rest of the system
+ 
+  (define (tag x) (attach-tag 'poly x))
+
+  (put 'add '(poly poly)
+       (lambda (x y) (tag (add-poly x y))))
+
+  (put 'sub '(poly poly)
+       (lambda (x y) (tag (sub-poly x y))))
+
+  (put 'mul '(poly poly)
+       (lambda (x y) (tag (multiply-poly x y))))
+
+  'installed)
+
   
 
 ;; install packages
@@ -267,6 +318,7 @@
 (install-fractions-package)
 (install-matrix-package)
 (install-integer-package)
+(install-poly-package)
 
 ;;; tests
 (define (check-expect check expect)
@@ -284,6 +336,7 @@
 (define (tag-fraction x) (attach-tag 'fraction x))
 (define (tag-matrix x) (attach-tag 'matrix x))
 (define (tag-integer x) (attach-tag 'integer x))
+(define (tag-poly x) (attach-tag 'poly x))
 
 (define (tests)
 
@@ -328,6 +381,22 @@
   (check-expect (sub int1 int2) (tag-integer 3))
   (check-expect (mul int1 int2) (tag-integer 40))
   (check-expect (div int1 int3) (tag-integer 2))
+
+  ;; polynomials
+
+  (define poly1 (tag-poly (list (cons 100 3) (cons 0 5))))
+  (define poly2 (tag-poly (list (cons 100 2) (cons 0 3))))
+
+  (check-expect (mul poly1 poly2) (tag-poly (list (cons 200 6)
+						  (cons 100 19)
+						  (cons 0 15))))
+  
+  (check-expect (sub poly1 poly2) (tag-poly (list (cons 100 1)
+						  (cons 0 2))))
+						  
+
+  (check-expect (add poly1 poly2) (tag-poly (list (cons 100 5)
+						 (cons 0 8))))
 
   'done)
 
