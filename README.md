@@ -9,7 +9,7 @@ a generic arithmetic system implemented using one of SiCP lessons, namely data d
 - [ ] implement a `rational-function` package;
 - [x] implement an `integer` package;
 - [ ] implement a generic `print` procedure;
-- [ ] define the procedures in the `polynomial` package to operate on abstract data, ie., data abstraction; and
+- [x] define the procedures in the `polynomial` package to operate on abstract data, ie., data abstraction; and
 - [ ] define the procedures in the `matrix` package to operate on abstract data, ie., data abstraction.
 
 ## Built with:
@@ -29,4 +29,4 @@ Then, you load the file `generic-arithmetic.scm`.
 
 You can look at the tests to get an idea of how data is represented and  to try out more examples.
 
-Thanks!
+## Thanks!
