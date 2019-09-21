@@ -264,50 +264,101 @@
 (define (install-poly-package)
   ;; internal procedures
 
-  (define (add-poly a b)
-    (cond ((null? a) b)
-	  ((null? b) a)
-	  ((> (caar a) (caar b))
-	   (cons (car a) (add-poly (cdr a) b)))
-	  ((> (caar b) (caar a))
-	   (cons (car b) (add-poly a (cdr b))))
-       	  ((= (+ (cdr (car a)) (cdr (car b))) 0)
-	   (add-poly (cdr a) (cdr b)))
-	  (else (cons (cons (caar a) (+ (cdr (car a)) (cdr (car b))))
-			     (add-poly (cdr a) (cdr b))))))
-  (define (sub-poly a b)
-    (cond ((null? a) b)
-	  ((null? b) a)
-	  ((> (caar a) (caar b))
-	   (cons (car a) (sub-poly (cdr a) b)))
-	  ((> (caar b) (caar a))
-	   (cons (car b) (sub-poly a (cdr b))))
-	  ((= (- (cdr (car a)) (cdr (car b))) 0)
-	   (sub-poly (cdr a) (cdr b)))
-	  (else (cons (cons (caar a) (- (cdr (car a)) (cdr (car b))))
-		      (sub-poly (cdr a) (cdr b))))))
+  ;; poly poly -> compute-polynomials -> poly
+  ;; applies `compute-polynomials` to two polynomials in order to add them.
+  (define (add-polynomials poly1 poly2)
+    (compute-polynomials poly1
+		         +
+		         poly2))
 
-  (define (multiply-poly a b)
-    (if (or (null? a) (null? b))
-       '()
-       (cons (cons (+ (caar a) (caar b))
-		   (* (cdr (car a)) (cdr (car b))))
-	     (add-poly (multiply-poly (list (car a))
-				    (cdr b))
-		       (multiply-poly (cdr a) b)))))
+  ;; poly poly -> compute-polynomials -> poly
+  ;; applies `compute-polynomials` to two polys in order to subtract them.
+  (define (subtract-polynomials poly1 poly2)
+    (compute-polynomials poly1
+		         -
+		         poly2))
+
+  ;; poly procedure poly -> poly
+  ;; this procedure is an abstraction of process of adding and subtracting
+  ;; polynomials.
+  (define (compute-polynomials poly1 proc poly2)
+    (cond ((null? poly1) poly2)
+	  ((null? poly2) poly1)
+	  ((> (exponent (poly-term poly1))
+	      (exponent (poly-term poly2)))
+	   (cons (poly-term poly1)
+	         (compute-polynomials (rest-terms poly1)
+				      proc
+				      poly2)))
+	  ((> (exponent (poly-term poly2))
+	      (exponent (poly-term poly1)))
+	   (cons (poly-term poly2)
+	         (compute-polynomials poly1
+				      proc
+				      (rest-terms poly2))))
+	   ((= (proc (coefficient (poly-term poly1))
+	             (coefficient (poly-term poly2))) 0)
+	    (compute-polynomials (rest-terms poly1)
+			         proc
+			         (rest-terms poly2)))
+	   (else (cons
+		  (cons (exponent (poly-term poly1))
+			(proc (coefficient (poly-term poly1)) (coefficient (poly-term poly2))))
+		  (compute-polynomials (rest-terms poly1)
+				       proc
+				       (rest-terms poly2))))))
+
+
+  ;; poly poly -> poly
+  ;; given two polynomials, `mul-polynomials` multiplies them.
+  (define (mul-polynomials poly1 poly2)
+    (if (or (null? poly1) (null? poly2))
+	'()
+        (cons
+	 (cons (+ (exponent (poly-term poly1))
+		  (exponent (poly-term poly2)))
+	       (* (coefficient (poly-term poly1))
+		  (coefficient (poly-term poly2))))
+	 (add-polynomials (mul-polynomials (list (poly-term poly1))
+					   (rest-terms poly2))
+			  (mul-polynomials (rest-terms poly1) poly2)))))
+
+
+  ;; poly -> term
+  ;; selects the term component of a polynomial.
+  (define (poly-term poly)
+    (car poly))
+
+  ;; poly -> terms
+  ;; selects the rest of the terms given a poly.
+  (define (rest-terms poly)
+    (cdr poly))
+
+  ;; exponent coefficient -> term
+  ;; constructs terms
+  (define (make-term exponent coefficient)
+    (cons exponent coefficient))
+
+  ;; term -> exponent
+  (define (exponent term)
+    (car term))
+
+  ;; term -> coefficient
+  (define (coefficient term)
+    (cdr term))
   
   ;; interface to the rest of the system
  
   (define (tag x) (attach-tag 'poly x))
 
   (put 'add '(poly poly)
-       (lambda (x y) (tag (add-poly x y))))
+       (lambda (x y) (tag (add-polynomials x y))))
 
   (put 'sub '(poly poly)
-       (lambda (x y) (tag (sub-poly x y))))
+       (lambda (x y) (tag (subtract-polynomials x y))))
 
   (put 'mul '(poly poly)
-       (lambda (x y) (tag (multiply-poly x y))))
+       (lambda (x y) (tag (mul-polynomials x y))))
 
   'installed)
 
